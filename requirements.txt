@@ -1,3 +1,10 @@
-# No external dependencies required for basic functionality
-# Test requirements
+# Core dependencies
+solana>=0.30.0
+anchorpy>=0.18.0
+web3>=6.0.0
 pytest>=7.0.0
+python-dotenv>=0.19.0
+# For web interface
+flask>=2.0.0
+# For wallet interaction
+solders>=0.20.0

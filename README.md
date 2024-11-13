@@ -1,6 +1,6 @@
 # Flat Earth Debate Game
 
-An educational game where players use scientific reasoning to convince an AI that the Earth is round. This game helps develop critical thinking and argumentation skills while learning about scientific evidence.
+An educational game where players use scientific reasoning to convince an AI that the Earth is round. This game helps develop critical thinking and argumentation skills while learning about scientific evidence. Features Solana blockchain integration for payments and token rewards!
 
 ## Features
 
@@ -9,6 +9,11 @@ An educational game where players use scientific reasoning to convince an AI tha
 - Dynamic scoring system
 - Progressive difficulty as the AI adapts to arguments
 - Hint system for new players
+- Solana blockchain integration
+  - 0.1 SOL entry fee
+  - Token rewards for winning
+  - Automated payment verification
+  - Score-based reward calculation
 
 ## Installation
 
