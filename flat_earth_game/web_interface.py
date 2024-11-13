@@ -1,16 +1,17 @@
 """
-Web interface for the Flat Earth Debate Game with Solana integration.
+Web interface for the Flat Earth Debate Game with Quai Network integration.
 """
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from .game import FlatEarthDebateGame
-from .solana_integration import GameToken
-import asyncio
+from .quai_integration import QuaiGameContract
 
 app = Flask(__name__)
-game_token = GameToken()
+CORS(app)  # Enable CORS for Pegasus wallet integration
+quai = QuaiGameContract()
 
 @app.route('/start_game', methods=['POST'])
-async def start_game():
+def start_game():
     """Start a new game session after payment verification"""
     data = request.json
     wallet_address = data.get('wallet_address')
@@ -18,26 +19,27 @@ async def start_game():
     if not wallet_address:
         return jsonify({'error': 'Wallet address required'}), 400
         
-    # Verify payment
-    payment_verified = await game_token.verify_payment(wallet_address)
-    if not payment_verified:
+    # Verify payment and start game session
+    result = quai.start_game_session(wallet_address)
+    if not result['success']:
         return jsonify({
             'error': 'Payment required',
             'required_amount': 0.1,
-            'wallet': str(game_token.game_wallet)
+            'contract_address': quai.game_address,
+            'details': result.get('error', 'Payment failed')
         }), 402
         
     # Create new game session
     game = FlatEarthDebateGame()
-    session_id = str(hash(wallet_address + str(asyncio.get_event_loop().time())))
     
     return jsonify({
-        'session_id': session_id,
+        'session_id': result['session_id'],
+        'transaction_hash': result['transaction_hash'],
         'message': 'Game started! Payment verified.'
     })
 
 @app.route('/submit_argument', methods=['POST'])
-async def submit_argument():
+def submit_argument():
     """Handle player arguments and return game response"""
     data = request.json
     argument = data.get('argument')
@@ -52,11 +54,11 @@ async def submit_argument():
     
     # If game is won, send token reward
     if result.get('state', {}).get('convinced', False):
-        reward_sent = await game_token.reward_token(
+        reward_result = quai.reward_winner(
             wallet_address,
             result['state']['credibility_score']
         )
-        result['reward_sent'] = reward_sent
+        result['reward'] = reward_result
         
     return jsonify(result)
 
@@ -65,8 +67,19 @@ def game_status():
     """Get current game status and token info"""
     return jsonify({
         'entry_fee': 0.1,
-        'token_contract': str(game_token.token_mint),
-        'payment_wallet': str(game_token.game_wallet)
+        'token_contract': quai.token_address,
+        'game_contract': quai.game_address,
+        'network': 'cyprus1.testnet.quai.network'
+    })
+
+@app.route('/token_balance/<address>', methods=['GET'])
+def token_balance(address):
+    """Get player's token balance"""
+    balance = quai.get_player_token_balance(address)
+    return jsonify({
+        'address': address,
+        'balance': balance,
+        'token_contract': quai.token_address
     })
 
 if __name__ == '__main__':
